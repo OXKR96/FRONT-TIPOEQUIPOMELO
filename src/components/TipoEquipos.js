@@ -1,8 +1,6 @@
 import dayjs from 'dayjs'
 import React, { useEffect, useState } from 'react'
-import { createTipoEquipo, getTipoEquipos, editarTipoEquipo } from '../services/TipoEquipoService'
-import Modal from './ui/Modal'
-import ModalEdit from './ui/ModalEdit'
+import { createTipoEquipo, getTipoEquipos, editarTipoEquipo,borrarTipoEquipo } from '../services/TipoEquipoService'
 
 export default function TipoEquipos() {
 const title= 'Tipo de Equipo'
@@ -88,6 +86,22 @@ const editTipoEquipo = async () => {
     const response = await editarTipoEquipo(id, tipoEquipo)
     console.log(response)
     setTipoEquipo({nombre: ''})
+    listTipoEquipos()
+    setTimeout(() => {
+      setLoadingSave(false)
+    }, 500)
+  }catch(e){
+    console.log(e)
+    setError(true)
+    setLoadingSave(false)
+  }
+}
+const borrTipoEquipo = async () => {
+  try{
+    setError(false)
+    setLoadingSave(true)
+    const response = await borrarTipoEquipo(id)
+    console.log(response)
     listTipoEquipos()
     setTimeout(() => {
       setLoadingSave(false)
@@ -345,6 +359,19 @@ const editTipoEquipo = async () => {
                             Editar
                           </button>
                         </td>
+                        <td>
+                          
+                        <button
+                         onClick={borrTipoEquipo}
+                         type="button" 
+                         class="btn btn-danger"
+                         id={tipoEquipo._id}>
+                        Borrar
+                         </button>
+                          
+                          
+                          
+                          </td>
                       </tr>
                     )
                   })

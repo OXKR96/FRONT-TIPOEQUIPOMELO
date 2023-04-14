@@ -88,7 +88,7 @@ export default function ModalEdit({
               type="button" 
               className="btn btn-primary"
               onClick={editTipoEquipo}
-              disabled={tipoEquipo.nombre.length == 0}
+              disabled={tipoEquipo.nombre.length==0}
             >
             Enviar
             </button>
