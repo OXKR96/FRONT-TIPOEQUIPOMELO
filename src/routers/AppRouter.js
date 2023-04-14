@@ -16,7 +16,7 @@ export default function AppRouter() {
         <div className='container'>
             <Routes>
                 <Route path='/' element={<TipoEquipos/>} />
-                <Route path='/estados' element={<Estados />} />
+                <Route path='Estados/' element={<Estados />} />
                 <Route path='/usuarios' element={<Usuarios />} />
                 <Route path='/marcas' element={<Marcas/> } />
                 <Route path='/inventario' element={<Inventario />} />
