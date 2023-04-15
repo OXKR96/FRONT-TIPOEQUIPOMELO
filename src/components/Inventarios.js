@@ -1,34 +1,67 @@
 import dayjs from 'dayjs'
 import React, { useEffect, useState } from 'react'
-import { createMarca, getMarcas, editarMarca } from '../services/MarcaService'
-import Modal from './ui/Modal'
-import ModalEdit from './ui/ModalEdit'
+import { createInventario, getInventarios, editarInventario } from '../services/InventarioService'
+import ModalEditInventario from './ui/ModalEditInventario'
+import ModalInventario from './ui/ModalInventario'
+import {  getTipoEquipos } from '../services/TipoEquipoService'
 
-export default function Marcas() {
-const title= 'Marca'
-const [marcas, setMarcas] = useState([])
+export default function Inventarios() {
+const title= 'Inventario'
+const [Inventarios, setInventarios] = useState([])
 const [query, setQuery] = useState(true)
 const [loading, setLoading] = useState(true)
 const [error, setError]= useState(false)
-const [marca, setMarca] = useState({
-  nombre: ''
+const [Inventario, setInventario] = useState({
+  nombre: '',
+   serial:'',
+   modelo:'',
+   descripcion:'',
+   foto:'',
+   color:'',
+  FechaCompra:'',
+  precio:'',
+  usuario:{_id:'',nombre:''},
+  marca:{_id:'',nombre:''},
+  estado:
+{_id:'',nombre:''},
+  tipoEquipo:{_id:'',nombre:''},
 })
 const [loadingSave, setLoadingSave] = useState(false)
 
 const [id, setId] = useState('')
 
-const listMarcas = async () => {
+
+const [tiposEquipos, setTiposEquipos] = useState([])
+
+const listTipoEquipos = async () => {
+  try{
+    
+    const { data } = await getTipoEquipos(true)
+    console.log(data)
+    setTiposEquipos(data)
+  }catch(e){
+    console.log(e)
+  }
+}
+
+useEffect(() => {
+  listTipoEquipos()
+}, [])
+
+
+const listInventarios = async () => {
   try{
     setError(false)
     setLoading(true)
-    const { data } = await getMarcas(query)
+    const { data } = await getInventarios(query)
     console.log(data)
-    setMarcas(data)
-    
+    setInventarios(data)
+
     setTimeout(() => {
       setLoading(false)
     }, 500)
     
+
   }catch(e){
     console.log(e)
     setError(true)
@@ -37,7 +70,7 @@ const listMarcas = async () => {
 }
 
 useEffect(() => {
-  listMarcas()
+  listInventarios()
 }, [query])
 
 const changeSwitch = () => {
@@ -45,20 +78,30 @@ const changeSwitch = () => {
 }
 
 const handleChange = (e) => {
-  setMarca({
-    ...marca,
-    [e.target.name]: e.target.value
+  console.log(e.target.value)
+  setInventario({
+    ...Inventario,
+    [e.target.name]: e.target.value 
   })
 }
 
-const saveMarca = async () => {
+const handleChangeSelects = (e) => {
+  console.log(e.target.value)
+  setInventario({
+    ...Inventario, [e.target.name]:{
+      _id:  e.target.value 
+    }
+  })
+}
+
+const saveInventario = async () => {
   try{
     setError(false)
     setLoadingSave(true)
-    const response = await createMarca(marca)
+    const response = await createInventario(Inventario)
     console.log(response)
-    setMarca({nombre: ''})
-    listMarcas()
+    setInventario({nombre: ''})
+    listInventarios()
     setTimeout(() => {
       setLoadingSave(false)
     }, 500)
@@ -70,25 +113,26 @@ const saveMarca = async () => {
 }
 
 const closeModal = () => {
-  setMarca({nombre: ''})
+  setInventario({nombre: ''})
+  setInventario({nombre: ''})
   if(id)setId('')
 }
 
-const selectMarca = (evt) => {
+const selectInventario = (evt) => {
   evt.preventDefault()
   setId(evt.target.id)
-  const tEq = marcas.filter(marca => marca._id === evt.target.id)
-  setMarca({...tEq[0]})
+  const tEq = Inventarios.filter(Inventario => Inventario._id === evt.target.id)
+  setInventario({...tEq[0]})
 }
 
-const editMarca = async () => {
+const editInventario = async () => {
   try{
     setError(false)
     setLoadingSave(true)
-    const response = await editarMarca(id,marca)
+    const response = await editarInventario(id,Inventario)
     console.log(response)
-    setMarca({nombre: ''})
-    listMarcas()
+    setInventario({nombre:''})
+    listInventarios()
     setTimeout(() => {
       setLoadingSave(false)
     }, 500)
@@ -101,21 +145,23 @@ const editMarca = async () => {
 
   return (
     <>
-        <ModalEdit 
+        <ModalEditInventario
           title={title}
           closeModal={closeModal}
           handleChange={handleChange}
-          tipoEquipo={marca}
+          tipoEquipo={Inventario}
           loadingSave={loadingSave}
-          editTipoEquipo={editMarca}
+          editTipoEquipo={editInventario}
         />
-        <Modal 
+        <ModalInventario
           title={title}
           closeModal={closeModal}
           handleChange={handleChange}
-          tipoEquipo={marca}
+          tipoEquipo={Inventario}
           loadingSave={loadingSave}
-          saveTipoEquipo={saveMarca}
+          saveTipoEquipo={saveInventario}
+          tiposEquipos={tiposEquipos}
+          handleChangeSelects={handleChangeSelects}
         />
         <div className="form-check form-switch">
           <input 
@@ -165,31 +211,37 @@ const editMarca = async () => {
               <thead>
                 <tr>
                   <th scope="col">#</th>
-                  <th scope="col">Nombre</th>
-                  <th scope="col">Estado</th>
+                  <th scope="col">Serial</th>
+                  <th scope="col">Modelo</th>
+                  <th scope="col">Descripcion</th>
+                  <th scope="col">Marca</th>
+                  <th scope="col">Tipo</th>
                   <th scope="col">Fecha creac.</th>
-                  <th scope="col">Fecha act.</th>
+              
                   <th scope="col"></th>
                 </tr>
               </thead>
               <tbody>
                 {
-                  marcas.map((marca, index) => {
+                  Inventarios.map((i, index) => {
                     return (
-                      <tr key={marca._id}>
+                      <tr key={i._id}>
                         <th scope="row">{index + 1}</th>
-                        <td>{marca.nombre}</td>
-                        <td>{marca.estado ? 'Activo' : 'Inactivo'}</td>
-                        <td>{dayjs(marca.fechaCreacion).format('YYYY-MM-DD')}</td>
-                        <td>{dayjs(marca.fechaActualizacion).format('YYYY-MM-DD')}</td>
+                        <td>{i._id}</td>
+                        <td>{i.modelo}</td>
+                        <td>{i.descripcion}</td>
+                        <td>{}</td>
+                        <td>{i.tipoEquipo.nombre}</td>
+                        <td>{dayjs(i.fechaCreacion).format('YYYY-MM-DD')}</td>
+                        
                         <td>
                           <button 
-                            onClick={selectMarca}
+                            onClick={selectInventario}
                             type="button" 
                             className="btn btn-success"
                             data-bs-toggle="modal" 
                             data-bs-target="#exampleModalEdit" 
-                            id={marca._id}
+                            id={Inventario._id}
                           >
                             Editar
                           </button>
